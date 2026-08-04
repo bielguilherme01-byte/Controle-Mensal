@@ -1,7 +1,8 @@
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { CalendarClock, Pencil } from 'lucide-react';
-import { Card, BudgetModal } from '@/components/ui';
+import { Card } from '@/components/ui';
 import { useExpenses } from '@/lib/expensesStore';
+import { useNavigation } from '@/lib/navigation';
 import { formatBRL } from '@/lib/format';
 import { CATEGORY_MAP } from '@/lib/constants';
 
@@ -18,8 +19,8 @@ const MONTH_LABEL = new Date().toLocaleDateString('pt-BR', {
 });
 
 function HomeScreen() {
-  const { expenses, budget, setBudget } = useExpenses();
-  const [budgetModalOpen, setBudgetModalOpen] = useState(false);
+  const { expenses, budget } = useExpenses();
+  const { push } = useNavigation();
 
   const { spent, counts, nextDue } = useMemo(() => {
     const day = new Date().getDate();
@@ -46,15 +47,7 @@ function HomeScreen() {
   const available = budget - spent;
   const progress = budget > 0 ? Math.min(spent / budget, 1) : 0;
 
-  const openBudgetModal = useCallback(() => setBudgetModalOpen(true), []);
-  const closeBudgetModal = useCallback(() => setBudgetModalOpen(false), []);
-  const handleSaveBudget = useCallback(
-    (value: number) => {
-      setBudget(value);
-      setBudgetModalOpen(false);
-    },
-    [setBudget]
-  );
+  const openBudgetModal = useCallback(() => push('budget'), [push]);
 
   return (
     <div className="px-5 pt-6">
@@ -126,12 +119,6 @@ function HomeScreen() {
         </div>
       </Card>
 
-      <BudgetModal
-        open={budgetModalOpen}
-        currentBudget={budget}
-        onClose={closeBudgetModal}
-        onSave={handleSaveBudget}
-      />
     </div>
   );
 }
