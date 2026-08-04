@@ -11,9 +11,8 @@ export function maskCurrency(raw: string): string {
   if (!digits) return '';
   const cents = parseInt(digits, 10);
   return (cents / 100).toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
     minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 }
 
