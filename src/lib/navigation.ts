@@ -1,9 +1,12 @@
 import { createContext, useContext } from 'react';
+import type { CategoryKey } from './types';
 
-export type ScreenKey = 'budget';
+export type ScreenKey = 'budget' | 'category-detail';
+
+export type NavParams = { categoryKey?: CategoryKey };
 
 export type NavigationContextValue = {
-  push: (screen: ScreenKey) => void;
+  push: (screen: ScreenKey, params?: NavParams) => void;
   pop: () => void;
 };
 

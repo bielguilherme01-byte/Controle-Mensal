@@ -1,8 +1,9 @@
-import { memo, useMemo } from 'react';
-import { PieChart } from 'lucide-react';
+import { memo, useCallback, useMemo } from 'react';
+import { PieChart, ChevronRight } from 'lucide-react';
 import { ScreenHeader, EmptyState, Card } from '@/components/ui';
 import { DonutChart } from '@/components/stats/DonutChart';
 import { useExpenses } from '@/lib/expensesStore';
+import { useNavigation } from '@/lib/navigation';
 import { useMonthStats } from '@/lib/stats';
 import { CATEGORY_MAP } from '@/lib/constants';
 import { formatBRL } from '@/lib/format';
@@ -15,12 +16,17 @@ const MONTH_LABEL = new Date().toLocaleDateString('pt-BR', {
 
 function BreakdownRow({
   item,
+  onSelect,
 }: {
   item: CategoryBreakdownItem;
+  onSelect: (key: CategoryBreakdownItem['key']) => void;
 }) {
   const Icon = CATEGORY_MAP[item.key].icon;
   return (
-    <div className="flex items-center gap-3 py-3">
+    <button
+      onClick={() => onSelect(item.key)}
+      className="flex w-full items-center gap-3 py-3 text-left btn-press"
+    >
       <span
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
         style={{
@@ -52,17 +58,26 @@ function BreakdownRow({
           </span>
         </div>
       </div>
-    </div>
+      <ChevronRight size={18} className="shrink-0 text-ink-quaternary" />
+    </button>
   );
 }
 
 function StatsScreenInner() {
   const { expenses } = useExpenses();
+  const { push } = useNavigation();
 
   const now = useMemo(() => {
     const d = new Date();
     return { year: d.getFullYear(), month: d.getMonth() };
   }, []);
+
+  const handleSelectCategory = useCallback(
+    (key: CategoryBreakdownItem['key']) => {
+      push('category-detail', { categoryKey: key });
+    },
+    [push]
+  );
 
   const stats = useMonthStats(expenses, now.year, now.month);
   const hasData = stats.totalExpenses > 0;
@@ -119,7 +134,7 @@ function StatsScreenInner() {
           <ul className="divide-y divide-black/[0.06]">
             {stats.breakdown.map((item) => (
               <li key={item.key}>
-                <BreakdownRow item={item} />
+                <BreakdownRow item={item} onSelect={handleSelectCategory} />
               </li>
             ))}
           </ul>

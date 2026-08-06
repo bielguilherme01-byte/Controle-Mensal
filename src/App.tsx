@@ -4,13 +4,15 @@ import { Screen } from '@/components/layout/Screen';
 import { BottomNav } from '@/components/navigation/BottomNav';
 import { TABS, type TabKey } from '@/components/navigation/tabs';
 import { ExpensesProvider } from '@/lib/expensesStore';
-import { NavigationContext, type ScreenKey } from '@/lib/navigation';
+import { NavigationContext, type ScreenKey, type NavParams } from '@/lib/navigation';
+import type { CategoryKey } from '@/lib/types';
 import HomeScreen from '@/screens/HomeScreen';
 import { ExpensesScreen } from '@/screens/ExpensesScreen';
 import { StatsScreen } from '@/screens/StatsScreen';
 import { RemindersScreen } from '@/screens/RemindersScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
 import { BudgetScreen } from '@/screens/BudgetScreen';
+import { CategoryDetailScreen } from '@/screens/CategoryDetailScreen';
 
 const SCREENS: Record<TabKey, ReactElement> = {
   home: <HomeScreen />,
@@ -20,18 +22,16 @@ const SCREENS: Record<TabKey, ReactElement> = {
   settings: <SettingsScreen />,
 };
 
-const PUSHED_SCREENS: Record<ScreenKey, ReactElement> = {
-  budget: <BudgetScreen />,
-};
-
 function App() {
   const [tab, setTab] = useState<TabKey>('home');
   const [pushedScreen, setPushedScreen] = useState<ScreenKey | null>(null);
+  const [navParams, setNavParams] = useState<NavParams>({});
   const [exiting, setExiting] = useState(false);
   const [settled, setSettled] = useState(false);
 
-  const push = useCallback((screen: ScreenKey) => {
+  const push = useCallback((screen: ScreenKey, params: NavParams = {}) => {
     setExiting(false);
+    setNavParams(params);
     setPushedScreen(screen);
   }, []);
 
@@ -54,10 +54,20 @@ function App() {
     if (exiting) {
       setPushedScreen(null);
       setExiting(false);
+      setNavParams({});
     }
   }, [exiting]);
 
   const navValue = useMemo(() => ({ push, pop }), [push, pop]);
+
+  const pushedContent = useMemo(() => {
+    if (!pushedScreen) return null;
+    if (pushedScreen === 'budget') return <BudgetScreen />;
+    if (pushedScreen === 'category-detail' && navParams.categoryKey) {
+      return <CategoryDetailScreen categoryKey={navParams.categoryKey} />;
+    }
+    return null;
+  }, [pushedScreen, navParams]);
 
   return (
     <ExpensesProvider>
@@ -72,7 +82,7 @@ function App() {
           </Screen>
           <BottomNav active={tab} onChange={setTab} />
 
-          {pushedScreen && (
+          {pushedScreen && pushedContent && (
             <div
               onTransitionEnd={handleTransitionEnd}
               className="absolute inset-0 z-[70] overflow-hidden bg-white shadow-[-8px_0_24px_-8px_rgba(0,0,0,0.18)]"
@@ -81,7 +91,7 @@ function App() {
                 transition: 'transform 320ms cubic-bezier(0.22, 1, 0.36, 1)',
               }}
             >
-              {PUSHED_SCREENS[pushedScreen]}
+              {pushedContent}
             </div>
           )}
         </AppShell>
