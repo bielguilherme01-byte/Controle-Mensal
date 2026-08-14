@@ -1,6 +1,24 @@
 import { useMemo } from 'react';
-import type { Expense, CategoryKey } from './types';
+import type { Expense, CategoryKey, StatusKey } from './types';
 import { CATEGORIES } from './constants';
+
+export type ComputedStatus = 'paid' | 'pending' | 'overdue';
+
+/**
+ * Computes the display status of an expense relative to today's date.
+ *
+ * - `paid` when the expense is marked as paid.
+ * - `overdue` when unpaid and the due day has passed.
+ * - `pending` otherwise.
+ *
+ * This is the single source of truth for status derivation — the Home summary
+ * card and the status detail screens both use it, so counts always match.
+ */
+export function computeExpenseStatus(expense: Expense): ComputedStatus {
+  if (expense.status === 'paid') return 'paid';
+  const today = new Date().getDate();
+  return expense.dueDay < today ? 'overdue' : 'pending';
+}
 
 export type CategoryBreakdownItem = {
   key: CategoryKey;
@@ -25,6 +43,11 @@ export type MonthStats = {
  * model uses `dueDay` + `recurrence`, not explicit timestamps). When expenses
  * gain date fields, implement the actual filtering here — every consumer below
  * already passes year/month through, so no call-site changes will be needed.
+ */
+/**
+ * Filters expenses for the given year/month. Currently all expenses are treated
+ * as current-month obligations. When expenses gain date fields, implement the
+ * actual filtering here — every consumer already passes year/month through.
  */
 export function filterExpensesByMonth(
   expenses: Expense[],
@@ -68,6 +91,28 @@ export function computeMonthStats(
     bottomCategory: breakdown.length > 0 ? breakdown[breakdown.length - 1] : null,
   };
 }
+
+/**
+ * Counts expenses by computed status (paid / pending / overdue) for the given
+ * month. Used by the Home summary card.
+ */
+export function countByStatus(
+  expenses: Expense[],
+  year: number,
+  month: number
+): Record<ComputedStatus, number> {
+  const filtered = filterExpensesByMonth(expenses, year, month);
+  const counts: Record<ComputedStatus, number> = { paid: 0, pending: 0, overdue: 0 };
+  for (const e of filtered) {
+    counts[computeExpenseStatus(e)] += 1;
+  }
+  return counts;
+}
+
+export type StatusCounts = Record<ComputedStatus, number>;
+
+// Re-export StatusKey so consumers can import status types from a single place
+export type { StatusKey };
 
 export function useMonthStats(
   expenses: Expense[],

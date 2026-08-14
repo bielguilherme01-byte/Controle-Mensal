@@ -1,8 +1,9 @@
 import { memo, useCallback, useMemo } from 'react';
-import { CalendarClock, Pencil } from 'lucide-react';
+import { CalendarClock, Pencil, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui';
 import { useExpenses } from '@/lib/expensesStore';
 import { useNavigation } from '@/lib/navigation';
+import { computeExpenseStatus, filterExpensesByMonth, type ComputedStatus } from '@/lib/stats';
 import { formatBRL } from '@/lib/format';
 import { CATEGORY_MAP } from '@/lib/constants';
 
@@ -24,17 +25,20 @@ function HomeScreen() {
 
   const { spent, counts, nextDue } = useMemo(() => {
     const day = new Date().getDate();
+    const now = { year: new Date().getFullYear(), month: new Date().getMonth() };
+    const filtered = filterExpensesByMonth(expenses, now.year, now.month);
     let s = 0;
     let paid = 0;
     let pending = 0;
     let overdue = 0;
     const upcoming: { dueDay: number; name: string; category: keyof typeof CATEGORY_MAP; amount: number }[] = [];
-    for (const e of expenses) {
+    for (const e of filtered) {
       s += e.amount;
-      if (e.status === 'paid') {
+      const status = computeExpenseStatus(e);
+      if (status === 'paid') {
         paid += 1;
       } else {
-        if (e.dueDay < day) overdue += 1;
+        if (status === 'overdue') overdue += 1;
         else pending += 1;
         upcoming.push({ dueDay: e.dueDay, name: e.name, category: e.category, amount: e.amount });
       }
@@ -48,6 +52,11 @@ function HomeScreen() {
   const progress = budget > 0 ? Math.min(spent / budget, 1) : 0;
 
   const openBudgetModal = useCallback(() => push('budget'), [push]);
+
+  const openStatus = useCallback(
+    (status: ComputedStatus) => push('status-detail', { statusKey: status }),
+    [push]
+  );
 
   return (
     <div className="px-5 pt-6">
@@ -90,10 +99,10 @@ function HomeScreen() {
       {/* Summary card */}
       <Card className="mt-6 p-6 animate-rise">
         <p className="text-[17px] font-semibold tracking-tight text-ink">Resumo</p>
-        <div className="mt-5 space-y-4">
-          <SummaryRow dotClass="bg-success" label="Pagas" value={counts.paid} />
-          <SummaryRow dotClass="bg-warning" label="Pendentes" value={counts.pending} />
-          <SummaryRow dotClass="bg-error" label="Atrasadas" value={counts.overdue} />
+        <div className="mt-5 space-y-1">
+          <SummaryRow dotClass="bg-success" label="Pagas" value={counts.paid} onClick={() => openStatus('paid')} />
+          <SummaryRow dotClass="bg-warning" label="Pendentes" value={counts.pending} onClick={() => openStatus('pending')} />
+          <SummaryRow dotClass="bg-error" label="Atrasadas" value={counts.overdue} onClick={() => openStatus('overdue')} />
         </div>
       </Card>
 
@@ -144,19 +153,27 @@ const SummaryRow = memo(function SummaryRow({
   dotClass,
   label,
   value,
+  onClick,
 }: {
   dotClass: string;
   label: string;
   value: number;
+  onClick: () => void;
 }) {
   return (
-    <div className="flex items-center justify-between">
+    <button
+      onClick={onClick}
+      className="flex w-full items-center justify-between py-3 text-left btn-press transition-colors hover:bg-black/[0.02] active:bg-black/[0.04] rounded-lg -mx-2 px-2"
+    >
       <span className="flex items-center gap-2.5 text-[16px] text-ink-secondary">
         <span className={`h-2.5 w-2.5 rounded-full ${dotClass}`} />
         {label}
       </span>
-      <span className="text-[17px] font-bold tracking-tight text-ink">{value}</span>
-    </div>
+      <span className="flex items-center gap-2">
+        <span className="text-[17px] font-bold tracking-tight text-ink">{value}</span>
+        <ChevronRight size={18} className="text-ink-quaternary" />
+      </span>
+    </button>
   );
 });
 

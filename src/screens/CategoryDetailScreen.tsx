@@ -3,21 +3,14 @@ import { ChevronLeft, Check, Clock, AlertCircle, StickyNote } from 'lucide-react
 import { Card, EmptyState } from '@/components/ui';
 import { useExpenses } from '@/lib/expensesStore';
 import { useNavigation } from '@/lib/navigation';
-import { useMonthStats } from '@/lib/stats';
+import { useMonthStats, filterExpensesByMonth, computeExpenseStatus } from '@/lib/stats';
 import { CATEGORY_MAP, RECURRENCE_MAP } from '@/lib/constants';
 import { formatBRL } from '@/lib/format';
-import { filterExpensesByMonth } from '@/lib/stats';
 import type { CategoryKey, Expense } from '@/lib/types';
 
 type CategoryDetailScreenProps = {
   categoryKey: CategoryKey;
 };
-
-function computeStatus(expense: Expense): 'paid' | 'pending' | 'overdue' {
-  if (expense.status === 'paid') return 'paid';
-  const today = new Date().getDate();
-  return expense.dueDay < today ? 'overdue' : 'pending';
-}
 
 const STATUS_CONFIG = {
   paid: { label: 'Paga', color: '#34C759', bg: 'rgba(52,199,89,0.15)', Icon: Check },
@@ -26,7 +19,7 @@ const STATUS_CONFIG = {
 } as const;
 
 function ExpenseRow({ expense }: { expense: Expense }) {
-  const status = computeStatus(expense);
+  const status = computeExpenseStatus(expense);
   const statusCfg = STATUS_CONFIG[status];
   const StatusIcon = statusCfg.Icon;
   const rec = RECURRENCE_MAP[expense.recurrence];

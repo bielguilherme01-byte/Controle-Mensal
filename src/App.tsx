@@ -13,6 +13,7 @@ import { RemindersScreen } from '@/screens/RemindersScreen';
 import { SettingsScreen } from '@/screens/SettingsScreen';
 import { BudgetScreen } from '@/screens/BudgetScreen';
 import { CategoryDetailScreen } from '@/screens/CategoryDetailScreen';
+import { StatusDetailScreen } from '@/screens/StatusDetailScreen';
 
 const SCREENS: Record<TabKey, ReactElement> = {
   home: <HomeScreen />,
@@ -65,6 +66,9 @@ function App() {
     if (pushedScreen === 'budget') return <BudgetScreen />;
     if (pushedScreen === 'category-detail' && navParams.categoryKey) {
       return <CategoryDetailScreen categoryKey={navParams.categoryKey} />;
+    }
+    if (pushedScreen === 'status-detail' && navParams.statusKey) {
+      return <StatusDetailScreen statusKey={navParams.statusKey} />;
     }
     return null;
   }, [pushedScreen, navParams]);
