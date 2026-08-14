@@ -30,8 +30,8 @@ function ExpenseListItemInner({ expense, onClick }: ExpenseListItemProps) {
   return (
     <button
       onClick={() => onClick(expense.id)}
-      className={`flex w-full items-center gap-3 rounded-2xl bg-white p-3 shadow-card transition-colors btn-press hover:bg-black/[0.02] active:bg-black/[0.04] animate-fadeIn ${
-        status === 'paid' ? 'opacity-65' : ''
+      className={`flex w-full items-center gap-3 rounded-2xl bg-white p-2.5 shadow-card transition-colors btn-press hover:bg-black/[0.02] active:bg-black/[0.04] animate-fadeIn ${
+        status === 'paid' ? 'opacity-60' : ''
       }`}
     >
       {/* Category icon */}

@@ -95,7 +95,7 @@ export function ExpensesScreen() {
             <EmptyState icon={EMPTY_ICON} title={EMPTY_TITLE} description={EMPTY_DESC} />
           </Card>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {expenses.map((expense) => (
               <ExpenseListItem
                 key={expense.id}

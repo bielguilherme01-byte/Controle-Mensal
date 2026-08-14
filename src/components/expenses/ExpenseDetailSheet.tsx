@@ -1,6 +1,5 @@
 import { memo, useCallback, useState } from 'react';
 import {
-  X,
   Pencil,
   Trash2,
   CheckCircle2,
@@ -41,9 +40,9 @@ function DetailRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0">
-      <span className="shrink-0 text-[15px] text-ink-tertiary">{label}</span>
-      <span className="min-w-0 max-w-[62%] text-right text-[15px] font-medium text-ink">
+    <div className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
+      <span className="shrink-0 text-[14px] text-ink-tertiary">{label}</span>
+      <span className="min-w-0 max-w-[62%] truncate text-right text-[15px] font-medium text-ink">
         {children}
       </span>
     </div>
@@ -99,33 +98,33 @@ function ExpenseDetailSheetInner({
 
   return (
     <Sheet open={open} onClose={handleClose} title="Detalhes da despesa">
-      {/* Header card */}
-      <div className="mb-5 flex flex-col items-center rounded-2xl bg-surface-subtle p-5">
+      {/* Header card — always visible without scrolling */}
+      <div className="mb-3 flex items-center gap-3.5 rounded-2xl bg-surface-subtle p-4">
         <span
-          className="flex h-16 w-16 items-center justify-center rounded-2xl"
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
           style={{ backgroundColor: cat.tint, color: cat.color }}
         >
-          <Icon size={32} strokeWidth={2.2} />
+          <Icon size={28} strokeWidth={2.2} />
         </span>
-        <p className="mt-3 text-center text-[19px] font-bold tracking-tight text-ink">
-          {expense.name}
-        </p>
-        <p className="mt-0.5 text-[14px] text-ink-tertiary">{cat.label}</p>
-        <div className="mt-3 flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[17px] font-bold tracking-tight text-ink">
+            {expense.name}
+          </p>
+          <p className="mt-0.5 text-[13px] text-ink-tertiary">{cat.label}</p>
           <span
-            className="inline-flex items-center rounded-full px-3 py-1 text-[12px] font-semibold"
+            className="mt-1.5 inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
             style={{ backgroundColor: statusMeta.bg, color: statusMeta.color }}
           >
             {statusMeta.label}
           </span>
         </div>
-        <p className="mt-4 text-[28px] font-bold tracking-tight text-ink">
+        <p className="shrink-0 text-right text-[22px] font-bold tracking-tight text-ink">
           {formatBRL(expense.amount)}
         </p>
       </div>
 
       {/* Detail fields */}
-      <div className="rounded-2xl bg-surface-subtle px-4">
+      <div className="rounded-2xl bg-surface-subtle px-4 py-1">
         <DetailRow label="Nome">{expense.name}</DetailRow>
         <div className="h-px bg-black/[0.06]" />
         <DetailRow label="Categoria">{cat.label}</DetailRow>
@@ -148,52 +147,54 @@ function ExpenseDetailSheetInner({
 
       {/* Note */}
       {expense.note && (
-        <div className="mt-3 flex items-start gap-2 rounded-2xl bg-surface-subtle p-4">
-          <StickyNote size={16} className="mt-0.5 shrink-0 text-ink-tertiary" />
+        <div className="mt-3 flex items-start gap-2 rounded-2xl bg-surface-subtle p-3.5">
+          <StickyNote size={15} className="mt-0.5 shrink-0 text-ink-tertiary" />
           <div>
-            <p className="text-[13px] font-medium text-ink-tertiary">Observação</p>
-            <p className="mt-1 text-[15px] leading-relaxed text-ink">{expense.note}</p>
+            <p className="text-[12px] font-medium text-ink-tertiary">Observação</p>
+            <p className="mt-0.5 text-[14px] leading-relaxed text-ink">{expense.note}</p>
           </div>
         </div>
       )}
 
       {/* Actions */}
-      <div className="mt-5 space-y-2.5">
-        <Button variant="secondary" size="lg" fullWidth onClick={handleEdit}>
-          <span className="inline-flex items-center gap-2">
-            <Pencil size={18} strokeWidth={2.4} />
-            Editar
-          </span>
-        </Button>
+      <div className="mt-4 space-y-2.5">
+        <div className="flex gap-3">
+          <Button variant="secondary" size="lg" fullWidth onClick={handleEdit}>
+            <span className="inline-flex items-center gap-2">
+              <Pencil size={17} strokeWidth={2.4} />
+              Editar
+            </span>
+          </Button>
 
-        {!isPaid ? (
-          <Button variant="primary" size="lg" fullWidth onClick={handleTogglePaid}>
-            <span className="inline-flex items-center gap-2">
-              <CheckCircle2 size={18} strokeWidth={2.4} />
-              Marcar como paga
-            </span>
-          </Button>
-        ) : (
-          <Button variant="secondary" size="lg" fullWidth onClick={handleTogglePaid}>
-            <span className="inline-flex items-center gap-2">
-              <RotateCcw size={18} strokeWidth={2.4} />
-              Marcar como pendente
-            </span>
-          </Button>
-        )}
+          {!isPaid ? (
+            <Button variant="primary" size="lg" fullWidth onClick={handleTogglePaid}>
+              <span className="inline-flex items-center gap-2">
+                <CheckCircle2 size={17} strokeWidth={2.4} />
+                Marcar como paga
+              </span>
+            </Button>
+          ) : (
+            <Button variant="secondary" size="lg" fullWidth onClick={handleTogglePaid}>
+              <span className="inline-flex items-center gap-2">
+                <RotateCcw size={17} strokeWidth={2.4} />
+                Marcar como pendente
+              </span>
+            </Button>
+          )}
+        </div>
 
         {!confirmDelete ? (
           <button
             onClick={handleDeleteClick}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-[17px] font-semibold text-error transition-colors btn-press hover:bg-error/[0.06] active:bg-error/[0.08]"
+            className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[16px] font-semibold text-error transition-colors btn-press hover:bg-error/[0.06] active:bg-error/[0.08]"
           >
-            <Trash2 size={18} strokeWidth={2.4} />
+            <Trash2 size={17} strokeWidth={2.4} />
             Excluir despesa
           </button>
         ) : (
-          <div className="rounded-2xl bg-error/[0.08] p-4">
-            <div className="mb-3 flex items-start gap-2">
-              <AlertTriangle size={18} className="mt-0.5 shrink-0 text-error" />
+          <div className="rounded-xl bg-error/[0.08] p-3.5">
+            <div className="mb-2.5 flex items-start gap-2">
+              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-error" />
               <p className="text-[14px] font-medium leading-snug text-error">
                 Tem certeza? Esta ação não pode ser desfeita.
               </p>
@@ -217,15 +218,6 @@ function ExpenseDetailSheetInner({
           </div>
         )}
       </div>
-
-      {/* Close button */}
-      <button
-        onClick={handleClose}
-        className="mx-auto mt-4 flex items-center gap-1.5 text-[15px] font-medium text-ink-tertiary transition-colors hover:text-ink"
-      >
-        <X size={16} />
-        Fechar
-      </button>
     </Sheet>
   );
 }
