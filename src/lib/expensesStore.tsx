@@ -17,6 +17,7 @@ type ExpensesContextValue = {
   updateExpense: (id: string, draft: ExpenseDraft) => void;
   deleteExpense: (id: string) => void;
   markPaid: (id: string) => void;
+  togglePaid: (id: string) => void;
   setBudget: (value: number) => void;
 };
 
@@ -96,13 +97,23 @@ export function ExpensesProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const togglePaid = useCallback((id: string) => {
+    setExpenses((prev) =>
+      prev.map((e) =>
+        e.id === id
+          ? { ...e, status: e.status === 'paid' ? 'pending' : 'paid' }
+          : e
+      )
+    );
+  }, []);
+
   const setBudget = useCallback((value: number) => {
     setBudgetState(value);
   }, []);
 
   const value = useMemo(
-    () => ({ expenses, budget, addExpense, updateExpense, deleteExpense, markPaid, setBudget }),
-    [expenses, budget, addExpense, updateExpense, deleteExpense, markPaid, setBudget]
+    () => ({ expenses, budget, addExpense, updateExpense, deleteExpense, markPaid, togglePaid, setBudget }),
+    [expenses, budget, addExpense, updateExpense, deleteExpense, markPaid, togglePaid, setBudget]
   );
 
   return <ExpensesContext.Provider value={value}>{children}</ExpensesContext.Provider>;

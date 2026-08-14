@@ -41,13 +41,8 @@ export type MonthStats = {
  *
  * Currently all expenses are treated as current-month obligations (the data
  * model uses `dueDay` + `recurrence`, not explicit timestamps). When expenses
- * gain date fields, implement the actual filtering here — every consumer below
+ * gain date fields, implement the actual filtering here — every consumer
  * already passes year/month through, so no call-site changes will be needed.
- */
-/**
- * Filters expenses for the given year/month. Currently all expenses are treated
- * as current-month obligations. When expenses gain date fields, implement the
- * actual filtering here — every consumer already passes year/month through.
  */
 export function filterExpensesByMonth(
   expenses: Expense[],

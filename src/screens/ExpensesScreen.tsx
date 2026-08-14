@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Plus, ReceiptText } from 'lucide-react';
 import { ScreenHeader, EmptyState, Card } from '@/components/ui';
-import { ExpenseCard } from '@/components/expenses/ExpenseCard';
+import { ExpenseListItem } from '@/components/expenses/ExpenseListItem';
+import { ExpenseDetailSheet } from '@/components/expenses/ExpenseDetailSheet';
 import { ExpenseFormSheet } from './ExpenseFormSheet';
 import { useExpenses } from '@/lib/expensesStore';
 import type { ExpenseDraft } from '@/lib/types';
@@ -11,11 +12,18 @@ const EMPTY_TITLE = 'Nenhuma despesa cadastrada.';
 const EMPTY_DESC = 'Toque no botão + para adicionar sua primeira despesa.';
 
 export function ExpensesScreen() {
-  const { expenses, addExpense, updateExpense, deleteExpense, markPaid } = useExpenses();
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const { expenses, addExpense, updateExpense, deleteExpense, togglePaid } = useExpenses();
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const editingExpense = editingId ? expenses.find((e) => e.id === editingId) : null;
+  const detailExpense = detailId
+    ? expenses.find((e) => e.id === detailId) ?? null
+    : null;
+
+  const editingExpense = editingId
+    ? expenses.find((e) => e.id === editingId) ?? null
+    : null;
 
   const initialDraft = useMemo<ExpenseDraft | null>(() => {
     if (!editingExpense) return null;
@@ -30,15 +38,32 @@ export function ExpensesScreen() {
     };
   }, [editingExpense]);
 
+  const openDetail = useCallback((id: string) => setDetailId(id), []);
+
+  const closeDetail = useCallback(() => setDetailId(null), []);
+
   const openNew = useCallback(() => {
     setEditingId(null);
-    setSheetOpen(true);
+    setFormOpen(true);
   }, []);
 
-  const openEdit = useCallback((id: string) => {
+  const handleEditFromDetail = useCallback((id: string) => {
     setEditingId(id);
-    setSheetOpen(true);
+    setFormOpen(true);
   }, []);
+
+  const handleDeleteFromDetail = useCallback(
+    (id: string) => {
+      deleteExpense(id);
+      setDetailId(null);
+    },
+    [deleteExpense]
+  );
+
+  const handleTogglePaid = useCallback(
+    (id: string) => togglePaid(id),
+    [togglePaid]
+  );
 
   const handleSubmit = useCallback(
     (draft: ExpenseDraft) => {
@@ -50,25 +75,15 @@ export function ExpensesScreen() {
         }
         return null;
       });
-      setSheetOpen(false);
+      setFormOpen(false);
     },
     [addExpense, updateExpense]
   );
 
-  const handleClose = useCallback(() => {
-    setSheetOpen(false);
+  const handleCloseForm = useCallback(() => {
+    setFormOpen(false);
     setEditingId(null);
   }, []);
-
-  const handleDelete = useCallback(
-    (id: string) => deleteExpense(id),
-    [deleteExpense]
-  );
-
-  const handleMarkPaid = useCallback(
-    (id: string) => markPaid(id),
-    [markPaid]
-  );
 
   return (
     <>
@@ -80,14 +95,12 @@ export function ExpensesScreen() {
             <EmptyState icon={EMPTY_ICON} title={EMPTY_TITLE} description={EMPTY_DESC} />
           </Card>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {expenses.map((expense) => (
-              <ExpenseCard
+              <ExpenseListItem
                 key={expense.id}
                 expense={expense}
-                onEdit={openEdit}
-                onDelete={handleDelete}
-                onMarkPaid={handleMarkPaid}
+                onClick={openDetail}
               />
             ))}
           </div>
@@ -103,9 +116,18 @@ export function ExpensesScreen() {
         <Plus size={26} strokeWidth={2.6} />
       </button>
 
+      <ExpenseDetailSheet
+        open={detailId !== null}
+        expense={detailExpense}
+        onClose={closeDetail}
+        onEdit={handleEditFromDetail}
+        onDelete={handleDeleteFromDetail}
+        onTogglePaid={handleTogglePaid}
+      />
+
       <ExpenseFormSheet
-        open={sheetOpen}
-        onClose={handleClose}
+        open={formOpen}
+        onClose={handleCloseForm}
         onSubmit={handleSubmit}
         initial={initialDraft}
       />
